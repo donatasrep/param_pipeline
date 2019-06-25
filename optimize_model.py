@@ -139,7 +139,7 @@ def wrapped_model(p):
     model.compile(optimizer=Adam(lr=p['lr'], beta_1=p['beta_1'], beta_2=p['beta_2'], epsilon=p['epsilon']),
                   loss='mse',
                   metrics=[coef_det_k])
-
+    print("Trainable paramaters: ", model.summary())
     out = model.fit(x, y,
                     batch_size=int(p['mbatch']),
                     epochs=int(p['epochs']),
@@ -147,6 +147,7 @@ def wrapped_model(p):
                     validation_data=[x_val, y_val],
                     callbacks=call_backs)
 
+    print("Run ",min(out.history['val_loss']), p)
     result = {
         'loss': min(out.history['val_loss']),
         'coef_det': max(out.history['val_coef_det_k']),
@@ -202,8 +203,11 @@ def run_a_trial():
         params,
         algo=tpe.suggest,
         trials=trials,
-        max_evals=max_evals
+        max_evals=max_evals,
+        show_progressbar=False
     )
+    print("Best",best)
+    print("trials", trials)
     try:
         pickle.dump(trials, open(file_name, "wb"))
         logging.info(f"Trial {len(trials.trials)} was saved")
@@ -247,20 +251,20 @@ if __name__ == "__main__":
         relevant_params.remove('id')
     params = {k: params[k] for k in relevant_params}
 
-    pbar = tqdm(total=args.optimizer_iterations)
+    #pbar = tqdm(total=args.optimizer_iterations)
     n = 0
     #trying for the first time
     try:
         n = run_a_trial()
-        pbar.update(n)
+        #pbar.update(n)
     except Exception as err:
         logging.error("Cannot run trial", exc_info=True)
 
     while n < args.optimizer_iterations:
         try:
             n = run_a_trial()
-            pbar.update(1)
+            #pbar.update(1)
         except Exception as err:
             logging.error("Cannot run trial", exc_info=True)
             n += 1
-            pbar.update(1)
+            #pbar.update(1)

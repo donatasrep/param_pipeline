@@ -1,5 +1,6 @@
 import os
 import csv
+import time
 from collections import OrderedDict
 from collections import Iterable
 import numpy as np
@@ -9,7 +10,10 @@ from keras.callbacks import TensorBoard, CSVLogger, Callback
 from hyperopt import hp
 from ruamel.yaml import YAML
 from collections.abc import Iterable
+import logging
 
+
+logging.basicConfig(format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 def coef_det_k(y_true, y_pred):
     """Computer coefficient of determination R^2
@@ -146,11 +150,25 @@ class TestCallback(Callback):
         self.test_data = test_data
         self.loss = -1e8
         self.acc = -1e8
+
+    def on_train_begin(self, logs=None):
+        logging.info("Training started")
+
+    def on_train_end(self, logs=None):
+        logging.info("Training ended")
+
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
     
     def on_epoch_end(self, epoch, logs={}): 
         x, y = self.test_data 
-        self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0) 
-        #print('\nTesting loss: {}, acc: {}\n'.format(loss, acc))
+        self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
+        elapse_time = time.time() - self.epoch_time_start
+        print('\nTesting loss: {}, acc: {} (Took: {} seconds)\n'.format(self.loss, self.acc, elapse_time))
         
         
 def split_data(x, y, validation_split=0.1):
