@@ -115,3 +115,7 @@ logs/
 
 # results
 results/
+
+.checkpoints/
+
+data/
