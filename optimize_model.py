@@ -264,20 +264,20 @@ if __name__ == "__main__":
         relevant_params.remove('id')
     params = {k: params[k] for k in relevant_params}
 
-    #pbar = tqdm(total=args.optimizer_iterations)
+    pbar = tqdm(total=args.optimizer_iterations)
     n = 0
     #trying for the first time
     try:
         n = run_a_trial()
-        #pbar.update(n)
+        pbar.update(n)
     except Exception as err:
         logging.error("Cannot run trial", exc_info=True)
 
     while n < args.optimizer_iterations:
         try:
             n = run_a_trial()
-            #pbar.update(1)
+            pbar.update(1)
         except Exception as err:
             logging.error("Cannot run trial", exc_info=True)
             n += 1
-            #pbar.update(1)
+            pbar.update(1)
