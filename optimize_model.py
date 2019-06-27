@@ -4,6 +4,7 @@ import pickle
 import os
 import random
 import re
+import sys
 import traceback
 import inspect
 import numpy as np
@@ -19,7 +20,8 @@ import logging
 from hyperopt import hp, tpe, fmin, Trials
 from hyperopt import STATUS_OK, STATUS_FAIL
 
-logging.basicConfig(format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG,
+                    handlers=[logging.StreamHandler(sys.stdout).setLevel(logging.DEBUG)])
 
 #tensorflow configuration
 config = tf.ConfigProto()
