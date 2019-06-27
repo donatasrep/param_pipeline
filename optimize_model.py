@@ -119,6 +119,7 @@ tf.set_random_seed(REPLICATE_SEED + 4)
 
 def wrapped_model(p):
 
+    logging.info(p)
     model = POC_model([sl.shape[1:] for sl in x], p)
 
     if args.multi_gpu and args.multi_gpu >= 2: # often crashes because of this
@@ -152,6 +153,7 @@ def wrapped_model(p):
                   loss='mse',
                   metrics=[coef_det_k])
     logging.info("Trainable params: {}".format(model.count_params()))
+    logging.info(model.summary())
     out = model.fit(x, y,
                     batch_size=int(p['mbatch']),
                     epochs=int(p['epochs']),
