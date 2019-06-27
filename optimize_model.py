@@ -139,7 +139,8 @@ def wrapped_model(p):
     model.compile(optimizer=Adam(lr=p['lr'], beta_1=p['beta_1'], beta_2=p['beta_2'], epsilon=p['epsilon']),
                   loss='mse',
                   metrics=[coef_det_k])
-    print("Trainable paramaters: ", model.summary())
+
+    print(model.summary())
     out = model.fit(x, y,
                     batch_size=int(p['mbatch']),
                     epochs=int(p['epochs']),

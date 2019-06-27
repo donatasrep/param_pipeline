@@ -164,11 +164,12 @@ class TestCallback(Callback):
     def on_epoch_end(self, batch, logs={}):
         self.times.append(time.time() - self.epoch_time_start)
     
-    def on_epoch_end(self, epoch, logs={}): 
-        x, y = self.test_data 
-        self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
-        elapse_time = time.time() - self.epoch_time_start
-        print('\nTesting loss: {}, acc: {} (Took: {} seconds)\n'.format(self.loss, self.acc, elapse_time))
+    def on_epoch_end(self, epoch, logs={}):
+        if epoch % 25 == 0:
+            x, y = self.test_data
+            self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
+            elapse_time = time.time() - self.epoch_time_start
+            print('\nTesting loss: {}, acc: {} (Took: {} seconds)\n'.format(self.loss, self.acc, elapse_time))
         
         
 def split_data(x, y, validation_split=0.1):
