@@ -153,6 +153,7 @@ class TestCallback(Callback):
         self.acc = -1e8
 
     def on_train_begin(self, logs=None):
+        self.times = []
         self.training_time_start = time.time()
         logging.info("Training started")
 
@@ -160,16 +161,15 @@ class TestCallback(Callback):
         x, y = self.test_data
         self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
         elapse_time = time.time() - self.training_time_start
-        logging.info('Training ended | Loss: {}, acc: {} (Training took {} seconds)'.format(self.loss, self.acc, elapse_time))
+        logging.info('Training ended | Loss: {}, acc: {} (Training took {} seconds | Avg. epoch duration: {} seconds)'.format(
+            self.loss, self.acc, elapse_time, np.mean(self.times)))
 
 
     def on_epoch_begin(self, epoch, logs={}):
         self.epoch_time_start = time.time()
 
-    def on_epoch_end(self, batch, logs={}):
-        self.times.append(time.time() - self.epoch_time_start)
-    
     def on_epoch_end(self, epoch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
         if False:
             x, y = self.test_data
             self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
