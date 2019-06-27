@@ -1,5 +1,5 @@
 import numpy as np
-from keras.models import Model
+from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, BatchNormalization, Dropout, Input, Dense, Flatten
 from hyperopt import hp
 
