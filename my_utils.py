@@ -14,7 +14,7 @@ from collections.abc import Iterable
 import logging
 
 
-logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 def coef_det_k(y_true, y_pred):
     """Computer coefficient of determination R^2
