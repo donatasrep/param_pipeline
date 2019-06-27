@@ -1,5 +1,6 @@
 import os
 import csv
+import sys
 import time
 from collections import OrderedDict
 from collections import Iterable
@@ -13,7 +14,7 @@ from collections.abc import Iterable
 import logging
 
 
-logging.basicConfig(format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 def coef_det_k(y_true, y_pred):
     """Computer coefficient of determination R^2
@@ -152,10 +153,14 @@ class TestCallback(Callback):
         self.acc = -1e8
 
     def on_train_begin(self, logs=None):
+        self.training_time_start = time.time()
         logging.info("Training started")
 
     def on_train_end(self, logs=None):
-        logging.info("Training ended")
+        x, y = self.test_data
+        self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
+        elapse_time = time.time() - self.training_time_start
+        logging.info('Training ended | Loss: {}, acc: {} (Training took {} seconds)'.format(self.loss, self.acc, elapse_time))
 
 
     def on_epoch_begin(self, batch, logs={}):
@@ -165,11 +170,11 @@ class TestCallback(Callback):
         self.times.append(time.time() - self.epoch_time_start)
     
     def on_epoch_end(self, epoch, logs={}):
-        if epoch % 25 == 0:
+        if False:
             x, y = self.test_data
             self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
             elapse_time = time.time() - self.epoch_time_start
-            print('\nTesting loss: {}, acc: {} (Took: {} seconds)\n'.format(self.loss, self.acc, elapse_time))
+            logging.info('Testing loss for epoch {}: {}, acc: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
         
         
 def split_data(x, y, validation_split=0.1):

@@ -5,6 +5,7 @@ import os
 import random
 import re
 import sys
+import time
 import traceback
 import inspect
 import numpy as np
@@ -20,8 +21,7 @@ import logging
 from hyperopt import hp, tpe, fmin, Trials
 from hyperopt import STATUS_OK, STATUS_FAIL
 
-logging.basicConfig(format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG,
-                    handlers=[logging.StreamHandler(sys.stdout).setLevel(logging.DEBUG)])
+logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 #tensorflow configuration
 config = tf.ConfigProto()
@@ -142,15 +142,12 @@ def wrapped_model(p):
                   loss='mse',
                   metrics=[coef_det_k])
 
-    print(model.summary())
     out = model.fit(x, y,
                     batch_size=int(p['mbatch']),
                     epochs=int(p['epochs']),
                     verbose=args.verbose,
                     validation_data=[x_val, y_val],
                     callbacks=call_backs)
-
-    print("Run ",min(out.history['val_loss']), p)
     result = {
         'loss': min(out.history['val_loss']),
         'coef_det': max(out.history['val_coef_det_k']),
@@ -185,18 +182,19 @@ def optimize_model(p):
 
 
 def run_a_trial():
+    start = time.time()
     """Run one TPE meta optimisation step and save its results."""
     max_evals = nb_evals = 1
 
-    logging.info("Attempt to resume a past training if it exists:")
+    #logging.info("Attempt to resume a past training if it exists:")
     file_name = os.path.join(os.path.dirname(args.output_file),
                              os.path.splitext(os.path.basename(args.output_file))[0] + ".pkl")
     try:
         # https://github.com/hyperopt/hyperopt/issues/267
         trials = pickle.load(open(file_name, "rb"))
-        logging.info("Found saved Trials! Loading...")
+        #logging.info("Found saved Trials! Loading...")
         max_evals = len(trials.trials) + nb_evals
-        logging.info("Rerunning from {} trials to add another one.".format(len(trials.trials)))
+        #logging.info("Rerunning from {} trials to add another one.".format(len(trials.trials)))
     except:
         trials = Trials()
         logging.info("Starting from scratch: new trials.")
@@ -209,11 +207,11 @@ def run_a_trial():
         max_evals=max_evals,
         show_progressbar=False
     )
-    print("Best",best)
-    print("trials", trials)
     try:
         pickle.dump(trials, open(file_name, "wb"))
         logging.info(f"Trial {len(trials.trials)} was saved")
+        elapse_time = time.time() - start
+        logging.info(f"Trial took {elapse_time} seconds")
     except Exception as err:
         logging.error("Cannot save trial", exc_info=True)
 
