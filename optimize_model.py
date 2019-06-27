@@ -37,7 +37,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(mes
 config = tf.ConfigProto()
 #config.gpu_options.allow_growth = True
 config.log_device_placement = True
-config.gpu_options.per_process_gpu_memory_fraction = 0.4
+# config.gpu_options.per_process_gpu_memory_fraction = 0.4
 sess = tf.Session(config=config)
 
 parser = argparse.ArgumentParser(description='Train my model.')
