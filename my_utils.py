@@ -164,8 +164,6 @@ class TestCallback(Callback):
 
 
     def on_epoch_begin(self, epoch, logs={}):
-        if epoch == 0:
-            logging.info("Epoch started")
         self.epoch_time_start = time.time()
 
     def on_epoch_end(self, batch, logs={}):

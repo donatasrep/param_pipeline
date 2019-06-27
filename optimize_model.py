@@ -137,8 +137,8 @@ def wrapped_model(p):
     hpars['id'] = np.array(hash_string)
 
     tcb = TestCallback((X_test, Y_test))
-    
-    call_backs = [EarlyStopping(monitor='val_loss', min_delta=float(p['min_delta']), patience=int(p['patience'])),
+
+    call_backs = [EarlyStopping(monitor='val_loss', min_delta=float(p['min_delta']), patience=int(p['patience']), verbose=1),
                   tcb,
                   ModelCheckpoint(filepath=best_model_ckpt_file, **best_check),
                   ModelCheckpoint(filepath=last_model_ckpt_file, **last_check),
@@ -151,13 +151,15 @@ def wrapped_model(p):
     model.compile(optimizer=Adam(lr=p['lr'], beta_1=p['beta_1'], beta_2=p['beta_2'], epsilon=p['epsilon']),
                   loss='mse',
                   metrics=[coef_det_k])
-
+    logging.info("Trainable params: {}".format(model.count_params()))
     out = model.fit(x, y,
                     batch_size=int(p['mbatch']),
                     epochs=int(p['epochs']),
                     verbose=args.verbose,
                     validation_data=[x_val, y_val],
                     callbacks=call_backs)
+
+
     result = {
         'loss': min(out.history['val_loss']),
         'coef_det': max(out.history['val_coef_det_k']),
