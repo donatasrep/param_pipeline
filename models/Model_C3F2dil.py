@@ -54,7 +54,7 @@ def Params():
         'stride3': [1, 2],
         'dropout3': (0, 0.5),
         'dense5': [32, 64, 128],
-        'dropout5': (0, 1),
+        'dropout5': (0, 0.5),
         'dense6': [32, 64, 128],
         'dropout6': (0, 0.5)
     }
