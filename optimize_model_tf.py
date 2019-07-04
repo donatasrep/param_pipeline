@@ -173,6 +173,7 @@ def wrapped_model(p):
         'history': out.history,
         'status': STATUS_OK
     }
+    print(result)
     return result
 
 
