@@ -40,23 +40,23 @@ def Params():
         'dilation1': [1, 2, 4],
         'pool_size1': [1, 2, 4],
         'stride1': [1, 2],
-        'dropout1': (0, 1),
+        'dropout1': (0, 0.5),
         'kernel_size2': [10, 20, 30, 40],
         'filters2': [32, 64, 128],
         'dilation2': [1, 2, 4],
         'pool_size2': [1, 2, 4],
         'stride2': [1, 2],
-        'dropout2': (0, 1),
+        'dropout2': (0, 0.5),
         'kernel_size3': [10, 20, 30, 40],
         'filters3': [32, 64, 128],
         'dilation3': [1, 2, 4],
         'pool_size3': [1, 2, 4],
         'stride3': [1, 2],
-        'dropout3': (0, 1),
+        'dropout3': (0, 0.5),
         'dense5': [32, 64, 128],
         'dropout5': (0, 1),
         'dense6': [32, 64, 128],
-        'dropout6': (0, 1)
+        'dropout6': (0, 0.5)
     }
     return {k: hp.choice(k, v) if type(v) == list else hp.uniform(k, v[0], v[1]) for k, v in params.items()}
 

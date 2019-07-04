@@ -34,11 +34,11 @@ except Exception:
 logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 #tensorflow configuration
-config = tf.ConfigProto()
-#config.gpu_options.allow_growth = True
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
 config.log_device_placement = True
 # config.gpu_options.per_process_gpu_memory_fraction = 0.4
-sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 
 parser = argparse.ArgumentParser(description='Train my model.')
 parser.add_argument('--model',
@@ -114,7 +114,8 @@ REPLICATE_SEED = args.REPLICATE_SEED
 os.environ['PYTHONHASHSEED'] = str(REPLICATE_SEED + 1)
 np.random.seed(REPLICATE_SEED + 2)
 random.seed(REPLICATE_SEED + 3)
-tf.set_random_seed(REPLICATE_SEED + 4)
+tf.compat.v1.set_random_seed(REPLICATE_SEED + 4)
+tf.logging.set_verbosity(tf.logging.WARN)
 
 
 def wrapped_model(p):
