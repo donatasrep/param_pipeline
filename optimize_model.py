@@ -169,7 +169,7 @@ def wrapped_model(p):
         'history': out.history,
         'status': STATUS_OK
     }
-    print("Loss: {} | R2: {}".format(result['loss'], result['coef_det']))
+    print("Loss: {} | R2: {}(Train: {}) ".format(result['loss'], result['coef_det'], max(out.history['coef_det_k'])))
     return result
 
 
