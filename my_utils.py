@@ -165,7 +165,7 @@ class TestCallback(Callback):
         x, y = self.test_data
         elapse_time = time.time() - self.training_time_start
         logging.info('Training ended | Loss: {}, acc: {} (Training took {} seconds | Avg. epoch duration: {} seconds)'.format(
-            min(self.loss), max(self.acc), elapse_time, np.mean(self.times)))
+            np.min(self.losses), np.max(self.accs), elapse_time, np.mean(self.times)))
 
 
     def on_epoch_begin(self, epoch, logs={}):
