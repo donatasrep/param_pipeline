@@ -175,7 +175,7 @@ class TestCallback(Callback):
         self.times.append(time.time() - self.epoch_time_start)
         x, y = self.test_data
         self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
-        self.losses.append(self.loss), self.accs(self.acc)
+        self.losses.append(self.loss), self.accs.append(self.acc)
         #elapse_time = time.time() - self.epoch_time_start
         #logging.info('Testing loss for epoch {}: {}, R2: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
         
