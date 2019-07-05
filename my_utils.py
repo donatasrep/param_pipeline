@@ -31,11 +31,11 @@ last_check = {'monitor': 'val_loss', 'verbose': 0, 'save_best_only': False, 'sav
 class TrainValTensorBoard(TensorBoard):
     """Keras callback to display train and validation metrics on same tensorboard plot
     """
-    def __init__(self, log_dir='./tensorboard_logs', **kwargs):
+    def __init__(self, test, log_dir='./tensorboard_logs', **kwargs):
         # Make the original `TensorBoard` log to a subdirectory 'training'
         training_log_dir = os.path.join(log_dir, 'training')
         super(TrainValTensorBoard, self).__init__(training_log_dir, **kwargs)
-
+        self.test = test
         # Log the validation metrics to a separate subdirectory
         self.val_log_dir = os.path.join(log_dir, 'validation')
 
@@ -50,6 +50,8 @@ class TrainValTensorBoard(TensorBoard):
         # be plotted on the same figure with the training metrics
         logs = logs or {}
         val_logs = {k.replace('val_', ''): v for k, v in logs.items() if k.startswith('val_')}
+        self.test_dict = {'test_loss': self.test.loss, 'test_val_det_k': self.test.acc}
+        logs = {**val_logs, **self.test_dict}
         for name, value in val_logs.items():
             summary = tf.Summary()
             summary_value = summary.value.add()
@@ -174,7 +176,7 @@ class TestCallback(Callback):
             x, y = self.test_data
             self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
             elapse_time = time.time() - self.epoch_time_start
-            logging.info('Testing loss for epoch {}: {}, acc: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
+            logging.info('Testing loss for epoch {}: {}, R2: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
         
         
 def split_data(x, y, validation_split=0.1):

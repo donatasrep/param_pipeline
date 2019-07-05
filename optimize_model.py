@@ -147,7 +147,7 @@ def wrapped_model(p):
                   MyCSVLogger(filename=args.output_file, hpars=hpars, test=tcb, separator=",", append=True)]
 
     if args.tensorboard_dir:
-        call_backs.append(TrainValTensorBoard(log_dir=os.path.join(args.tensorboard_dir, file_name + hash_string),
+        call_backs.append(TrainValTensorBoard(tcb, log_dir=os.path.join(args.tensorboard_dir, file_name + hash_string),
                                               histogram_freq=10, write_grads=True))
 
     model.compile(optimizer=Adam(lr=p['lr'], beta_1=p['beta_1'], beta_2=p['beta_2'], epsilon=p['epsilon']),
@@ -170,6 +170,7 @@ def wrapped_model(p):
         'history': out.history,
         'status': STATUS_OK
     }
+
     print("Loss: {} | R2: {}(Train: {}) ".format(result['loss'], result['coef_det'], max(out.history['coef_det_k'])))
     return result
 
