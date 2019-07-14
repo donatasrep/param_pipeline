@@ -259,9 +259,6 @@ class DataGenerator(Sequence):
                     first_non_zero = 0
 
                 cut = np.random.randint(first_non_zero, l)
-
-                print("ROTATION")
-                print("Shape x: {} | {}".format(x.shape, part.shape))
                 print(part[0:first_non_zero].shape, part[cut:].shape, part[first_non_zero:cut].shape)
                 parts.append(np.hstack([part[0:first_non_zero], part[cut:], part[first_non_zero:cut]]))
 
