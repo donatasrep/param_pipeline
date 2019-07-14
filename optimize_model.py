@@ -11,7 +11,8 @@ import inspect
 import numpy as np
 import tensorflow as tf
 from keras.optimizers import Adam
-from my_utils import coef_det_k, best_check,last_check, TrainValTensorBoard, MyCSVLogger, TestCallback, create_hparams, split_data
+from my_utils import coef_det_k, best_check, last_check, TrainValTensorBoard, MyCSVLogger, TestCallback, create_hparams, \
+    split_data, DataGenerator
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.backend as K
 from keras.utils import multi_gpu_model
@@ -155,8 +156,8 @@ def wrapped_model(p):
                   metrics=[coef_det_k])
     logging.info("Trainable params: {}".format(model.count_params()))
     logging.info(model.summary())
-    out = model.fit(x, y,
-                    batch_size=int(p['mbatch']),
+    data_generator = DataGenerator(x, y, int(p['mbatch']))
+    out = model.fit_generator(data_generator,
                     epochs=int(p['epochs']),
                     verbose=args.verbose,
                     validation_data=[x_val, y_val],

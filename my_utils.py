@@ -3,11 +3,12 @@ import csv
 import sys
 import time
 from collections import OrderedDict
-from collections import Iterable
+
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
 from keras.callbacks import TensorBoard, CSVLogger, Callback
+from keras.utils import Sequence
 from hyperopt import hp
 from ruamel.yaml import YAML
 from collections.abc import Iterable
@@ -26,6 +27,8 @@ def coef_det_k(y_true, y_pred):
 
 best_check = {'monitor': 'val_loss', 'verbose': 0, 'save_best_only': True, 'save_weights_only': True, 'mode': 'min'}
 last_check = {'monitor': 'val_loss', 'verbose': 0, 'save_best_only': False, 'save_weights_only': True, 'mode': 'min'}
+
+NUCLEOTIDES = np.eye(4,4)
 
 
 class TrainValTensorBoard(TensorBoard):
@@ -227,3 +230,63 @@ def create_hparams(param_config_file):
                         hparams[k] = v
 
     return hparams
+
+
+class DataGenerator(Sequence):
+    def __init__(self, x_set, y_set, batch_size):
+        self.x, self.y = np.squeeze(x_set), np.squeeze(y_set)
+        self.batch_size = batch_size
+        self.indices = np.arange(len(self.x))
+
+    def __len__(self):
+        return int(np.ceil(len(self.x) / float(self.batch_size)))
+
+    def rotate(self, x, p = 0.5):
+        limits = np.array([[0, 1000], [1000, 1300], [1300, 1650], [1650, 2150]])
+
+        parts = []
+        for limit in limits:
+            l = limit[1]-limit[0]
+            part = x[limit[0]:limit[1]]
+            if np.random.rand() > p:
+                parts.append(part)
+            else:
+                try:
+                    first_non_zero = np.min(np.nonzero(np.sum(part, axis=-1)))
+
+                except:
+                    print("ERROR: Limit {} contains nothing".format(limit))
+                    first_non_zero = 0
+
+                cut = np.random.randint(first_non_zero, l)
+
+                parts.append(np.vstack([part[0:first_non_zero], part[cut:], part[first_non_zero:cut]]))
+
+
+        return np.vstack(parts)
+
+
+    def random_mutations(self, x, mutation_rate=0.1):
+
+        if mutation_rate > 0:
+            length = len(x)
+            mutation_size = int(length * mutation_rate)
+            indicies = np.sort(np.random.randint(0,length-1, mutation_size))
+            indicies = np.intersect1d(np.nonzero(np.sum(x, axis=-1)), indicies)
+            r = np.random.randint(0,3,len(indicies))
+            mutations = NUCLEOTIDES[[r]]
+            np.put(x, indicies, mutations)
+
+        return x
+
+    def __getitem__(self, idx):
+
+        batch_i = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_x = [self.random_mutations(self.rotate(self.x[i]) )for i in batch_i]
+
+        batch_y = np.take(self.y, batch_i, axis=0)
+
+        return np.asarray(batch_x), batch_y
+
+    def on_epoch_end(self):
+        np.random.shuffle(self.indices)
