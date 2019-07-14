@@ -263,10 +263,10 @@ class DataGenerator(Sequence):
                 print("ROTATION")
                 print("Shape x: {} | {}".format(x.shape, part.shape))
                 print(part[0:first_non_zero].shape, part[cut:].shape, part[first_non_zero:cut].shape)
-                parts.append(np.vstack([part[0:first_non_zero], part[cut:], part[first_non_zero:cut]]))
+                parts.append(np.hstack([part[0:first_non_zero], part[cut:], part[first_non_zero:cut]]))
 
 
-        return np.vstack(parts)
+        return np.hstack(parts)
 
 
     def random_mutations(self, x, mutation_rate=0.1):
