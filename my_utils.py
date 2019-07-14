@@ -255,7 +255,7 @@ class DataGenerator(Sequence):
                     first_non_zero = np.min(np.nonzero(np.sum(part, axis=-1)))
 
                 except:
-                    print("ERROR: Limit {} contains nothing".format(limit))
+                    # print("ERROR: Limit {} contains nothing".format(limit))
                     first_non_zero = 0
 
                 cut = np.random.randint(first_non_zero, l)
