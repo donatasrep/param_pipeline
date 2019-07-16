@@ -277,10 +277,8 @@ class DataGenerator(Sequence):
 
 
         if self.reverse_p > np.random.rand():
-            print("Init", x)
             for i in range(len(x)):
                 x[i] = N_MAP[x[i]]
-            print("Modified",x)
         return x
 
     def random_mutations(self, x):
