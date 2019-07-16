@@ -14,8 +14,9 @@ from ruamel.yaml import YAML
 from collections.abc import Iterable
 import logging
 
+logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.DEBUG)
 
-logging.basicConfig(stream=sys.stdout, format='%(asctime)s-%(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.DEBUG)
 
 def coef_det_k(y_true, y_pred):
     """Computer coefficient of determination R^2
@@ -28,12 +29,15 @@ def coef_det_k(y_true, y_pred):
 best_check = {'monitor': 'val_loss', 'verbose': 0, 'save_best_only': True, 'save_weights_only': True, 'mode': 'min'}
 last_check = {'monitor': 'val_loss', 'verbose': 0, 'save_best_only': False, 'save_weights_only': True, 'mode': 'min'}
 
-NUCLEOTIDES = np.eye(4,4)
+NUCLEOTIDES = np.eye(4, 4)
+
+N_MAP = {0: 0, 1: 4, 2: 3, 3: 2, 4: 1}
 
 
 class TrainValTensorBoard(TensorBoard):
     """Keras callback to display train and validation metrics on same tensorboard plot
     """
+
     def __init__(self, test, log_dir='./tensorboard_logs', **kwargs):
         # Make the original `TensorBoard` log to a subdirectory 'training'
         training_log_dir = os.path.join(log_dir, 'training')
@@ -71,7 +75,7 @@ class TrainValTensorBoard(TensorBoard):
         # learning rate decay in optimizers changes internally and is not shown
         # https://stackoverflow.com/questions/37091751/keras-learning-rate-not-changing-despite-decay-in-sgd
         lr = float(K.get_value(self.model.optimizer.lr))
-        #print("Learning rate:", lr)
+        # print("Learning rate:", lr)
 
     def on_train_end(self, logs=None):
         super(TrainValTensorBoard, self).on_train_end(logs)
@@ -109,14 +113,14 @@ class MyCSVLogger(CSVLogger):
         self.keys = None
         self.append_header = True
         self.hpars = hpars
-        #self.test_dict = {'test_loss': test.loss,'test_val_det_k': test.acc} 
+        # self.test_dict = {'test_loss': test.loss,'test_val_det_k': test.acc}
         self.test = test
         self.file_flags = ''
         self._open_args = {'newline': '\n'}
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        self.test_dict = {'test_loss': self.test.loss,'test_val_det_k': self.test.acc} 
+        self.test_dict = {'test_loss': self.test.loss, 'test_val_det_k': self.test.acc}
         logs = {**logs, **self.hpars, **self.test_dict}
 
         def handle_value(k):
@@ -151,8 +155,8 @@ class MyCSVLogger(CSVLogger):
         self.csv_file.flush()
 
 
-class TestCallback(Callback): 
-    def __init__(self, test_data): 
+class TestCallback(Callback):
+    def __init__(self, test_data):
         self.test_data = test_data
         self.loss = -1e8
         self.acc = -1e8
@@ -167,9 +171,9 @@ class TestCallback(Callback):
     def on_train_end(self, logs=None):
         x, y = self.test_data
         elapse_time = time.time() - self.training_time_start
-        logging.info('Training ended | Loss: {}, acc: {} (Training took {} seconds | Avg. epoch duration: {} seconds)'.format(
-            np.min(self.losses), np.max(self.accs), elapse_time, np.mean(self.times)))
-
+        logging.info(
+            'Training ended | Loss: {}, acc: {} (Training took {} seconds | Avg. epoch duration: {} seconds)'.format(
+                np.min(self.losses), np.max(self.accs), elapse_time, np.mean(self.times)))
 
     def on_epoch_begin(self, epoch, logs={}):
         self.epoch_time_start = time.time()
@@ -179,10 +183,10 @@ class TestCallback(Callback):
         x, y = self.test_data
         self.loss, self.acc = self.model.evaluate(x, y, batch_size=x[0].shape[0], verbose=0)
         self.losses.append(self.loss), self.accs.append(self.acc)
-        #elapse_time = time.time() - self.epoch_time_start
-        #logging.info('Testing loss for epoch {}: {}, R2: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
-        
-        
+        # elapse_time = time.time() - self.epoch_time_start
+        # logging.info('Testing loss for epoch {}: {}, R2: {} (Took: {} seconds)'.format(epoch, self.loss, self.acc, elapse_time))
+
+
 def split_data(x, y, validation_split=0.1):
     if validation_split and 0. < validation_split < 1.:
         split_at = int(len(x[0][:]) * (1. - validation_split))
@@ -233,22 +237,28 @@ def create_hparams(param_config_file):
 
 
 class DataGenerator(Sequence):
-    def __init__(self, x_set, y_set, batch_size):
+    def __init__(self, x_set, y_set, batch_size, rotate_p=0, mutate_p=0, reverse_p=0.5):
         self.x, self.y = np.squeeze(x_set), np.squeeze(y_set)
         self.batch_size = batch_size
         self.indices = np.arange(len(self.x))
+        self.rotate_p = rotate_p
+        self.mutate_p = mutate_p
+        self.reverse_p = reverse_p
+        self.limits = np.array([[0, 1000], [1000, 1300], [1300, 1650], [1650, 2150]])
 
     def __len__(self):
         return int(np.ceil(len(self.x) / float(self.batch_size)))
 
-    def rotate(self, x, p = 0.5):
-        limits = np.array([[0, 1000], [1000, 1300], [1300, 1650], [1650, 2150]])
+    def rotate(self, x):
+
+        if self.rotate_p == 0:
+            return x
 
         parts = []
-        for limit in limits:
-            l = limit[1]-limit[0]
+        for limit in self.limits:
+            l = limit[1] - limit[0]
             part = x[limit[0]:limit[1]]
-            if np.random.rand() > p:
+            if np.random.rand() > self.rotate_p:
                 parts.append(part)
             else:
                 try:
@@ -261,18 +271,25 @@ class DataGenerator(Sequence):
                 cut = np.random.randint(first_non_zero, l)
                 parts.append(np.hstack([part[0:first_non_zero], part[cut:], part[first_non_zero:cut]]))
 
-
         return np.hstack(parts)
 
+    def reverse(self, x):
 
-    def random_mutations(self, x, mutation_rate=0.1):
+        print(x)
+        if self.reverse_p > np.random.rand():
+            for i in range(len(x)):
+                x[i] = N_MAP[x[i]]
+        print(x)
+        return x
 
-        if mutation_rate > 0:
+    def random_mutations(self, x):
+
+        if self.mutate_p > 0:
             length = len(x)
-            mutation_size = int(length * mutation_rate)
-            indicies = np.sort(np.random.randint(0,length-1, mutation_size))
+            mutation_size = int(length * self.mutate_p)
+            indicies = np.sort(np.random.randint(0, length - 1, mutation_size))
             indicies = np.intersect1d(np.nonzero(np.sum(x, axis=-1)), indicies)
-            r = np.random.randint(0,3,len(indicies))
+            r = np.random.randint(0, 3, len(indicies))
             mutations = NUCLEOTIDES[[r]]
             np.put(x, indicies, mutations)
 
@@ -281,7 +298,7 @@ class DataGenerator(Sequence):
     def __getitem__(self, idx):
 
         batch_i = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
-        batch_x = [self.random_mutations(self.rotate(self.x[i]) )for i in batch_i]
+        batch_x = [self.reverse(self.random_mutations(self.rotate(self.x[i]))) for i in batch_i]
 
         batch_y = np.take(self.y, batch_i, axis=0)
 
